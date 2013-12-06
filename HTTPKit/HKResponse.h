@@ -13,6 +13,6 @@
 @property (nonatomic) NSInteger statusCode;
 @property (nonatomic, strong) NSString* contentType;
 @property (nonatomic, strong) NSData* body;
-@property (nonatomic, strong) NSDictionary* data;
+@property (nonatomic, strong) id data;
 
 @end

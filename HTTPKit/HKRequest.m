@@ -164,7 +164,7 @@
     return nil;
 }
 
-+ (NSDictionary*)responseDataFromBody:(NSData*)content contentType:(NSString*)contentType
++ (id)responseDataFromBody:(NSData*)content contentType:(NSString*)contentType
 {
     if (contentType == nil)
         return nil;
@@ -173,7 +173,7 @@
         [contentType caseInsensitiveCompare:@"text/javascript"] == NSOrderedSame)
     {
         NSError* error = nil;
-        NSDictionary* responseData = [NSJSONSerialization JSONObjectWithData:content options:0 error:&error];
+        id responseData = [NSJSONSerialization JSONObjectWithData:content options:0 error:&error];
 
         if (error != nil)
             @throw error;

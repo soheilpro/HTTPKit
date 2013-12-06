@@ -22,7 +22,7 @@
 @property (nonatomic, strong) NSMutableDictionary* headers;
 @property (nonatomic, strong) NSString* contentType;
 @property (nonatomic, strong) NSData* body;
-@property (nonatomic, strong) NSMutableDictionary* data;
+@property (nonatomic, strong) id data;
 @property (nonatomic) NSURLRequestCachePolicy cachePolicy;
 @property (nonatomic, strong, readonly) HKRequestBase* httpRequest;
 
