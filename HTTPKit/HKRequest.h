@@ -15,7 +15,9 @@
 @interface HKRequest : NSObject
 
 @property (nonatomic, strong) NSString* method;
-@property (nonatomic, strong) NSString* baseUrl;
+@property (nonatomic, strong) NSString* protocol;
+@property (nonatomic, strong) NSString* subdomain;
+@property (nonatomic, strong) NSString* baseURL;
 @property (nonatomic, strong) NSString* path;
 @property (nonatomic, strong) NSMutableArray* pathParams;
 @property (nonatomic, strong) NSMutableDictionary* queryParams;

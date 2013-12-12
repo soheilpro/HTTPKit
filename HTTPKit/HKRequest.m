@@ -54,7 +54,7 @@
 
 - (HKRequestBase*)baseRequest
 {
-    NSString* url = [HKRequest urlWithBase:self.baseUrl path:self.path pathParams:self.pathParams queryParams:self.queryParams];
+    NSString* url = [HKRequest urlWithProtocol:self.protocol baseURL:self.baseURL subdomain:self.subdomain path:self.path pathParams:self.pathParams queryParams:self.queryParams];
     NSData* requestContent = self.body ? : [HKRequest requestBodyFromData:self.data contentType:self.contentType];
 
     HKRequestBase* httpRequest = [[HKRequestBase alloc] init];
@@ -74,14 +74,22 @@
 
 #pragma mark - Class methods
 
-+ (NSString*)urlWithBase:(NSString*)baseURL path:(NSString*)path pathParams:(NSArray*)pathParams queryParams:(NSDictionary*)queryParams
++ (NSString*)urlWithProtocol:(NSString*)protocol baseURL:(NSString*)baseURL subdomain:(NSString*)subdomain path:(NSString*)path pathParams:(NSArray*)pathParams queryParams:(NSDictionary*)queryParams
 {
     NSString* rewrittenPath = [HKRequest rewrittenPath:path withParams:pathParams];
     NSString* queryString = [HKRequest queryStringWithParams:queryParams];
-    NSString* url = [NSString stringWithFormat:@"%@/%@", baseURL, rewrittenPath];
+    NSString* url = baseURL;
+
+    if (subdomain.length > 0)
+        url  = [NSString stringWithFormat:@"%@.%@", subdomain, url];
+
+    if (rewrittenPath.length > 0)
+        url  = [NSString stringWithFormat:@"%@/%@", url, rewrittenPath];
 
     if (queryString.length > 0)
-        url = [url stringByAppendingFormat:@"?%@", queryString];
+        url = [NSString stringWithFormat:@"%@?%@", url, queryString];
+
+    url = [NSString stringWithFormat:@"%@://%@", protocol, url];
 
     return url;
 }
