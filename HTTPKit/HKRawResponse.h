@@ -1,5 +1,5 @@
 //
-//  HKResponseBase.h
+//  HKRawResponse.h
 //  HTTPKit
 //
 //  Created by Soheil Rashidi on 6/16/12.
@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface HKResponseBase : NSObject
+@interface HKRawResponse : NSObject
 
 @property (nonatomic) NSInteger statusCode;
 @property (nonatomic, strong) NSDictionary* headers;

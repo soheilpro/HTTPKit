@@ -1,21 +1,21 @@
 //
-//  HKRequestBase.m
+//  HKRawRequest.m
 //  HTTPKit
 //
 //  Created by Soheil Rashidi on 6/16/12.
 //  Copyright (c) 2013 Soheil Rashidi. All rights reserved.
 //
 
-#import "HKRequestBase.h"
+#import "HKRawRequest.h"
 
-@interface HKRequestBase ()
+@interface HKRawRequest ()
 
-@property (nonatomic, strong) void (^callback)(HKResponseBase* response, NSError* error);
-@property (nonatomic, strong) HKResponseBase* response;
+@property (nonatomic, strong) void (^callback)(HKRawResponse* response, NSError* error);
+@property (nonatomic, strong) HKRawResponse* response;
 
 @end
 
-@implementation HKRequestBase
+@implementation HKRawRequest
 
 #pragma mark - Init
 
@@ -33,7 +33,7 @@
 
 #pragma mark - Methods
 
-- (void)send:(void (^)(HKResponseBase* response, NSError* error))callback;
+- (void)send:(void (^)(HKRawResponse* response, NSError* error))callback;
 {
     NSURLRequest* urlRequest = [self urlRequest];
 
@@ -57,7 +57,7 @@
 {
     NSHTTPURLResponse* httpResponse = (NSHTTPURLResponse*)response;
 
-    self.response = [[HKResponseBase alloc] init];
+    self.response = [[HKRawResponse alloc] init];
     self.response.statusCode = httpResponse.statusCode;
     self.response.headers = httpResponse.allHeaderFields;
     self.response.body = [NSMutableData data];

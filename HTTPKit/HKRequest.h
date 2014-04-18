@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Soheil Rashidi. All rights reserved.
 //
 
+#import "HKRawRequest.h"
 #import "HKResponse.h"
-#import "HKRequestBase.h"
 #import <Foundation/Foundation.h>
 
 @class HKResponse;
@@ -26,7 +26,7 @@
 @property (nonatomic, strong) NSData* body;
 @property (nonatomic, strong) id data;
 @property (nonatomic) NSURLRequestCachePolicy cachePolicy;
-@property (nonatomic, strong, readonly) HKRequestBase* httpRequest;
+@property (nonatomic, strong, readonly) HKRawRequest* rawRequest;
 
 - (void)send:(void (^) (HKResponse* response, NSError* error))callback;
 

@@ -33,9 +33,9 @@
 
 - (void)send:(void (^)(HKResponse* response, NSError* error))callback;
 {
-    HKRequestBase* baseRequest = [self baseRequest];
+    HKRawRequest* rawRequest = [self baseRequest];
 
-    [baseRequest send:^(HKResponseBase* response, NSError* error)
+    [rawRequest send:^(HKRawResponse* response, NSError* error)
     {
         if (error != nil)
         {
@@ -53,14 +53,14 @@
     }];
 }
 
-- (HKRequestBase*)baseRequest
+- (HKRawRequest*)baseRequest
 {
     NSString* url = [HKRequest urlWithProtocol:self.protocol baseURL:self.baseURL subdomain:self.subdomain path:self.path pathParams:self.pathParams queryParams:self.queryParams];
 
     NSString* contentType = self.contentType;
     NSData* requestContent = self.body ? : [HKRequest requestBodyFromData:self.data contentType:&contentType];
 
-    HKRequestBase* httpRequest = [[HKRequestBase alloc] init];
+    HKRawRequest* httpRequest = [[HKRawRequest alloc] init];
     httpRequest.method = self.method;
     httpRequest.url = url;
     [httpRequest.headers addEntriesFromDictionary:self.headers];

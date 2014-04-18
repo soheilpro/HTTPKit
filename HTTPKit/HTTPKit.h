@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Soheil Rashidi. All rights reserved.
 //
 
+#import "HKFormData.h"
+#import "HKRawRequest.h"
+#import "HKRawResponse.h"
 #import "HKRequest.h"
 #import "HKResponse.h"
-#import "HKRequestBase.h"
-#import "HKResponseBase.h"
-#import "HKFormData.h"
