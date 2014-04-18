@@ -24,6 +24,8 @@
 
     if (self)
     {
+        self.method = @"GET";
+        self.protocol = @"http";
         self.pathParams = [NSMutableArray array];
         self.queryParams = [NSMutableDictionary dictionary];
         self.headers = [NSMutableDictionary dictionary];
