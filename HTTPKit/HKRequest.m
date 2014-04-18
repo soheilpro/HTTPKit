@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Soheil Rashidi. All rights reserved.
 //
 
+#import "HKFormData.h"
 #import "HKRequest.h"
 
 @implementation HKRequest
@@ -55,7 +56,9 @@
 - (HKRequestBase*)baseRequest
 {
     NSString* url = [HKRequest urlWithProtocol:self.protocol baseURL:self.baseURL subdomain:self.subdomain path:self.path pathParams:self.pathParams queryParams:self.queryParams];
-    NSData* requestContent = self.body ? : [HKRequest requestBodyFromData:self.data contentType:self.contentType];
+
+    NSString* contentType = self.contentType;
+    NSData* requestContent = self.body ? : [HKRequest requestBodyFromData:self.data contentType:&contentType];
 
     HKRequestBase* httpRequest = [[HKRequestBase alloc] init];
     httpRequest.method = self.method;
@@ -65,7 +68,7 @@
 
     if (requestContent != nil)
     {
-        [httpRequest.headers setValue:self.contentType forKey:@"Content-Type"];
+        [httpRequest.headers setValue:contentType forKey:@"Content-Type"];
         httpRequest.body = requestContent;
     }
 
@@ -146,12 +149,15 @@
     return [[contentType substringToIndex:range.location] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
-+ (NSData*)requestBodyFromData:(NSDictionary*)data contentType:(NSString*)contentType
++ (NSData*)requestBodyFromData:(id)data contentType:(NSString**)contentType
 {
-    if (data.count == 0)
+    if ([data isKindOfClass:[NSDictionary class]] && ((NSDictionary*)data).count == 0)
         return nil;
 
-    if ([contentType caseInsensitiveCompare:@"application/json"] == NSOrderedSame)
+    if ([data isKindOfClass:[NSArray class]] && ((NSArray*)data).count == 0)
+        return nil;
+
+    if ([*contentType caseInsensitiveCompare:@"application/json"] == NSOrderedSame)
     {
         NSError* error = nil;
         NSData* rawRequestData = [NSJSONSerialization dataWithJSONObject:data options:NSJSONWritingPrettyPrinted error:&error];
@@ -162,13 +168,34 @@
         return rawRequestData;
     }
 
-    if ([contentType caseInsensitiveCompare:@"application/x-www-form-urlencoded"] == NSOrderedSame)
+    if ([*contentType caseInsensitiveCompare:@"application/x-www-form-urlencoded"] == NSOrderedSame)
     {
         NSString* queryString = [self queryStringWithParams:data];
         
         return [queryString dataUsingEncoding:NSASCIIStringEncoding];
     }
-    
+
+    if ([*contentType caseInsensitiveCompare:@"multipart/form-data"] == NSOrderedSame)
+    {
+        NSMutableData* result = [NSMutableData data];
+        NSString* boundry = [[[NSUUID UUID] UUIDString] stringByReplacingOccurrencesOfString:@"-" withString:@""];
+
+        [data enumerateObjectsUsingBlock:^(HKFormData* formData, NSUInteger idx, BOOL* stop)
+        {
+            [result appendData:[[NSString stringWithFormat:@"--%@\r\n", boundry] dataUsingEncoding:NSUTF8StringEncoding]];
+            [result appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", formData.name, formData.filename] dataUsingEncoding:NSUTF8StringEncoding]]; // TODO: Escape name and filename
+            [result appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", formData.contentType] dataUsingEncoding:NSUTF8StringEncoding]];
+            [result appendData:formData.data];
+            [result appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
+        }];
+
+        [result appendData:[[NSString stringWithFormat:@"--%@--", boundry] dataUsingEncoding:NSUTF8StringEncoding]];
+
+        *contentType = [*contentType stringByAppendingFormat:@"; boundary=%@", boundry];
+
+        return result;
+    }
+
     return nil;
 }
 
