@@ -35,7 +35,7 @@
 {
     HKRawRequest* rawRequest = [self baseRequest];
 
-    [rawRequest send:^(HKRawResponse* response, NSError* error)
+    [rawRequest send:^(HKRawResponse* rawResponse, NSError* error)
     {
         if (error != nil)
         {
@@ -43,13 +43,13 @@
             return;
         }
 
-        HKResponse* apiResponse = [[HKResponse alloc] init];
-        apiResponse.statusCode = response.statusCode;
-        apiResponse.contentType = [HKRequest contentTypeFromHeader:[response.headers objectForKey:@"Content-Type"]];
-        apiResponse.body = response.body;
-        apiResponse.data = [HKRequest responseDataFromBody:apiResponse.body contentType:apiResponse.contentType];
+        HKResponse* response = [[HKResponse alloc] init];
+        response.statusCode = rawResponse.statusCode;
+        response.contentType = [HKRequest contentTypeFromHeader:[rawResponse.headers objectForKey:@"Content-Type"]];
+        response.body = rawResponse.body;
+        response.data = [HKRequest responseDataFromBody:response.body contentType:response.contentType];
 
-        callback(apiResponse, nil);
+        callback(response, nil);
     }];
 }
 
