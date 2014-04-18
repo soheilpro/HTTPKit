@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Soheil Rashidi. All rights reserved.
 //
 
+#import "HKContentConverter.h"
 #import "HKRawRequest.h"
 #import "HKResponse.h"
 #import <Foundation/Foundation.h>
@@ -27,6 +28,7 @@
 @property (nonatomic, strong) id content;
 @property (nonatomic) NSURLRequestCachePolicy cachePolicy;
 @property (nonatomic, strong, readonly) HKRawRequest* rawRequest;
+@property (nonatomic, strong) NSMutableArray* contentConverters;
 
 - (void)send:(void (^) (HKResponse* response, NSError* error))callback;
 

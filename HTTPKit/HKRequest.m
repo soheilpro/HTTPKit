@@ -7,8 +7,11 @@
 //
 
 #import "HKFormData.h"
-#import "HKRequest.h"
+#import "HKFormDataContentConverter.h"
+#import "HKFormURLEncodedContentConverter.h"
 #import "HKHTTP.h"
+#import "HKJSONContentConverter.h"
+#import "HKRequest.h"
 
 @implementation HKRequest
 
@@ -25,6 +28,10 @@
         self.headers = [NSMutableDictionary dictionary];
         self.contentType = @"application/x-www-form-urlencoded";
         self.content = [NSMutableDictionary dictionary];
+        self.contentConverters = [NSMutableArray array];
+        [self.contentConverters addObject:[[HKJSONContentConverter alloc] init]];
+        [self.contentConverters addObject:[[HKFormURLEncodedContentConverter alloc] init]];
+        [self.contentConverters addObject:[[HKFormDataContentConverter alloc] init]];
     }
 
     return self;
@@ -49,7 +56,7 @@
         response.headers = rawResponse.headers;
         response.contentType = [HKRequest contentTypeFromHeader:[rawResponse.headers objectForKey:@"Content-Type"]];
         response.body = rawResponse.body;
-        response.content = [HKRequest contentFromData:response.body contentType:response.contentType];
+        response.content = [self contentFromData:response.body contentType:response.contentType];
 
         callback(response, nil);
     }];
@@ -60,7 +67,7 @@
     NSString* url = [HKRequest urlWithProtocol:self.protocol baseURL:self.baseURL subdomain:self.subdomain path:self.path pathParams:self.pathParams queryParams:self.queryParams];
 
     NSString* contentType = self.contentType;
-    NSData* body = self.body ? : [HKRequest dataFromContent:self.content contentType:&contentType];
+    NSData* body = self.body ? : [self dataFromContent:self.content contentType:&contentType];
 
     HKRawRequest* httpRequest = [[HKRawRequest alloc] init];
     httpRequest.method = self.method;
@@ -126,72 +133,32 @@
     return [[contentType substringToIndex:range.location] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
-+ (NSData*)dataFromContent:(id)content contentType:(NSString**)contentType
+- (NSData*)dataFromContent:(id)content contentType:(NSString**)contentType
 {
+    if (content == nil)
+        return nil;
+
     if ([content isKindOfClass:[NSDictionary class]] && ((NSDictionary*)content).count == 0)
         return nil;
 
     if ([content isKindOfClass:[NSArray class]] && ((NSArray*)content).count == 0)
         return nil;
 
-    if ([*contentType caseInsensitiveCompare:@"application/json"] == NSOrderedSame)
-    {
-        NSError* error = nil;
-        NSData* rawRequestData = [NSJSONSerialization dataWithJSONObject:content options:NSJSONWritingPrettyPrinted error:&error];
-
-        if (error != nil)
-            @throw error;
-        
-        return rawRequestData;
-    }
-
-    if ([*contentType caseInsensitiveCompare:@"application/x-www-form-urlencoded"] == NSOrderedSame)
-    {
-        NSString* queryString = [HKHTTP queryStringWithParams:content];
-        
-        return [queryString dataUsingEncoding:NSASCIIStringEncoding];
-    }
-
-    if ([*contentType caseInsensitiveCompare:@"multipart/form-data"] == NSOrderedSame)
-    {
-        NSMutableData* result = [NSMutableData data];
-        NSString* boundry = [[[NSUUID UUID] UUIDString] stringByReplacingOccurrencesOfString:@"-" withString:@""];
-
-        [content enumerateObjectsUsingBlock:^(HKFormData* formData, NSUInteger idx, BOOL* stop)
-        {
-            [result appendData:[[NSString stringWithFormat:@"--%@\r\n", boundry] dataUsingEncoding:NSUTF8StringEncoding]];
-            [result appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", formData.name, formData.filename] dataUsingEncoding:NSUTF8StringEncoding]]; // TODO: Escape name and filename
-            [result appendData:[[NSString stringWithFormat:@"Content-Type: %@\r\n\r\n", formData.contentType] dataUsingEncoding:NSUTF8StringEncoding]];
-            [result appendData:formData.data];
-            [result appendData:[@"\r\n" dataUsingEncoding:NSUTF8StringEncoding]];
-        }];
-
-        [result appendData:[[NSString stringWithFormat:@"--%@--", boundry] dataUsingEncoding:NSUTF8StringEncoding]];
-
-        *contentType = [*contentType stringByAppendingFormat:@"; boundary=%@", boundry];
-
-        return result;
-    }
+    for (id<HKContentConverter> contentConverter in self.contentConverters)
+        if ([contentConverter supportsContentType:*contentType])
+            return [contentConverter dataFromContent:content contentType:contentType];
 
     return nil;
 }
 
-+ (id)contentFromData:(NSData*)data contentType:(NSString*)contentType
+- (id)contentFromData:(NSData*)data contentType:(NSString*)contentType
 {
     if (contentType == nil)
         return nil;
 
-    if ([contentType caseInsensitiveCompare:@"application/json"] == NSOrderedSame ||
-        [contentType caseInsensitiveCompare:@"text/javascript"] == NSOrderedSame)
-    {
-        NSError* error = nil;
-        id responseData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
-
-        if (error != nil)
-            @throw error;
-
-        return responseData;
-    }
+    for (id<HKContentConverter> contentConverter in self.contentConverters)
+        if ([contentConverter supportsContentType:contentType])
+            return [contentConverter contentFromData:data contentType:contentType];
 
     return nil;
 }
