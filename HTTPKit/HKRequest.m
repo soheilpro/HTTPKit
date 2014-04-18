@@ -12,6 +12,7 @@
 #import "HKHTTP.h"
 #import "HKJSONContentConverter.h"
 #import "HKRequest.h"
+#import "HKXMLContentConverter.h"
 
 @implementation HKRequest
 
@@ -30,6 +31,7 @@
         self.content = [NSMutableDictionary dictionary];
         self.contentConverters = [NSMutableArray array];
         [self.contentConverters addObject:[[HKJSONContentConverter alloc] init]];
+        [self.contentConverters addObject:[[HKXMLContentConverter alloc] init]];
         [self.contentConverters addObject:[[HKFormURLEncodedContentConverter alloc] init]];
         [self.contentConverters addObject:[[HKFormDataContentConverter alloc] init]];
     }
