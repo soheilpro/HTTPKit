@@ -48,7 +48,7 @@
         response.headers = rawResponse.headers;
         response.contentType = [HKRequest contentTypeFromHeader:[rawResponse.headers objectForKey:@"Content-Type"]];
         response.body = rawResponse.body;
-        response.content = [HKRequest responseDataFromBody:response.body contentType:response.contentType];
+        response.content = [HKRequest contentFromData:response.body contentType:response.contentType];
 
         callback(response, nil);
     }];
@@ -59,7 +59,7 @@
     NSString* url = [HKRequest urlWithProtocol:self.protocol baseURL:self.baseURL subdomain:self.subdomain path:self.path pathParams:self.pathParams queryParams:self.queryParams];
 
     NSString* contentType = self.contentType;
-    NSData* requestContent = self.body ? : [HKRequest requestBodyFromData:self.content contentType:&contentType];
+    NSData* body = self.body ? : [HKRequest dataFromContent:self.content contentType:&contentType];
 
     HKRawRequest* httpRequest = [[HKRawRequest alloc] init];
     httpRequest.method = self.method;
@@ -67,10 +67,10 @@
     [httpRequest.headers addEntriesFromDictionary:self.headers];
     httpRequest.cachePolicy = self.cachePolicy;
 
-    if (requestContent != nil)
+    if (body != nil)
     {
         [httpRequest.headers setValue:contentType forKey:@"Content-Type"];
-        httpRequest.body = requestContent;
+        httpRequest.body = body;
     }
 
     return httpRequest;
@@ -150,18 +150,18 @@
     return [[contentType substringToIndex:range.location] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
 }
 
-+ (NSData*)requestBodyFromData:(id)data contentType:(NSString**)contentType
++ (NSData*)dataFromContent:(id)content contentType:(NSString**)contentType
 {
-    if ([data isKindOfClass:[NSDictionary class]] && ((NSDictionary*)data).count == 0)
+    if ([content isKindOfClass:[NSDictionary class]] && ((NSDictionary*)content).count == 0)
         return nil;
 
-    if ([data isKindOfClass:[NSArray class]] && ((NSArray*)data).count == 0)
+    if ([content isKindOfClass:[NSArray class]] && ((NSArray*)content).count == 0)
         return nil;
 
     if ([*contentType caseInsensitiveCompare:@"application/json"] == NSOrderedSame)
     {
         NSError* error = nil;
-        NSData* rawRequestData = [NSJSONSerialization dataWithJSONObject:data options:NSJSONWritingPrettyPrinted error:&error];
+        NSData* rawRequestData = [NSJSONSerialization dataWithJSONObject:content options:NSJSONWritingPrettyPrinted error:&error];
 
         if (error != nil)
             @throw error;
@@ -171,7 +171,7 @@
 
     if ([*contentType caseInsensitiveCompare:@"application/x-www-form-urlencoded"] == NSOrderedSame)
     {
-        NSString* queryString = [self queryStringWithParams:data];
+        NSString* queryString = [self queryStringWithParams:content];
         
         return [queryString dataUsingEncoding:NSASCIIStringEncoding];
     }
@@ -181,7 +181,7 @@
         NSMutableData* result = [NSMutableData data];
         NSString* boundry = [[[NSUUID UUID] UUIDString] stringByReplacingOccurrencesOfString:@"-" withString:@""];
 
-        [data enumerateObjectsUsingBlock:^(HKFormData* formData, NSUInteger idx, BOOL* stop)
+        [content enumerateObjectsUsingBlock:^(HKFormData* formData, NSUInteger idx, BOOL* stop)
         {
             [result appendData:[[NSString stringWithFormat:@"--%@\r\n", boundry] dataUsingEncoding:NSUTF8StringEncoding]];
             [result appendData:[[NSString stringWithFormat:@"Content-Disposition: form-data; name=\"%@\"; filename=\"%@\"\r\n", formData.name, formData.filename] dataUsingEncoding:NSUTF8StringEncoding]]; // TODO: Escape name and filename
@@ -200,7 +200,7 @@
     return nil;
 }
 
-+ (id)responseDataFromBody:(NSData*)content contentType:(NSString*)contentType
++ (id)contentFromData:(NSData*)data contentType:(NSString*)contentType
 {
     if (contentType == nil)
         return nil;
@@ -209,7 +209,7 @@
         [contentType caseInsensitiveCompare:@"text/javascript"] == NSOrderedSame)
     {
         NSError* error = nil;
-        id responseData = [NSJSONSerialization JSONObjectWithData:content options:0 error:&error];
+        id responseData = [NSJSONSerialization JSONObjectWithData:data options:0 error:&error];
 
         if (error != nil)
             @throw error;
