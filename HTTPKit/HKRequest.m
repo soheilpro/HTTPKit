@@ -8,6 +8,7 @@
 
 #import "HKFormData.h"
 #import "HKRequest.h"
+#import "HKHTTP.h"
 
 @implementation HKRequest
 
@@ -81,7 +82,7 @@
 + (NSString*)urlWithProtocol:(NSString*)protocol baseURL:(NSString*)baseURL subdomain:(NSString*)subdomain path:(NSString*)path pathParams:(NSArray*)pathParams queryParams:(NSDictionary*)queryParams
 {
     NSString* rewrittenPath = [HKRequest rewrittenPath:path withParams:pathParams];
-    NSString* queryString = [HKRequest queryStringWithParams:queryParams];
+    NSString* queryString = [HKHTTP queryStringWithParams:queryParams];
     NSString* url = baseURL;
 
     if (subdomain.length > 0)
@@ -106,38 +107,13 @@
     NSMutableArray* escapedParams = [NSMutableArray arrayWithCapacity:params.count];
 
     for (NSString* param in params)
-        [escapedParams addObject:[HKRequest urlEncodedString:[NSString stringWithFormat:@"%@", param]]];
+        [escapedParams addObject:[HKHTTP urlEncodedString:[NSString stringWithFormat:@"%@", param]]];
 
     NSRange range = NSMakeRange(0, [escapedParams count]);
     NSMutableData* data = [NSMutableData dataWithLength:sizeof(id) * [escapedParams count]];
     [escapedParams getObjects:(__unsafe_unretained id*)data.mutableBytes range:range];
 
     return [[NSString alloc] initWithFormat:path arguments:data.mutableBytes];
-}
-
-+ (NSString*)queryStringWithParams:(NSDictionary*)params
-{
-    if (params.count == 0)
-        return @"";
-
-    NSMutableArray* args = [NSMutableArray array];
-
-    for (NSString* key in params)
-    {
-        NSString* value = [NSString stringWithFormat:@"%@", [params objectForKey:key]];
-        NSString* encodedKey = [HKRequest urlEncodedString:key];
-        NSString* encodedValue = [HKRequest urlEncodedString:value];
-        NSString* arg = [NSString stringWithFormat:@"%@=%@", encodedKey, encodedValue];
-
-        [args addObject:arg];
-    }
-
-    return [args componentsJoinedByString:@"&"];
-}
-
-+ (NSString*)urlEncodedString:(NSString*)string
-{
-    return (__bridge_transfer NSString*)CFURLCreateStringByAddingPercentEscapes(NULL, (__bridge CFStringRef)string, NULL, (__bridge CFStringRef)@"!;/?:@&=$+{}()<>,", CFStringConvertNSStringEncodingToEncoding(NSUTF8StringEncoding));
 }
 
 + (NSString*)contentTypeFromHeader:(NSString*)contentType
@@ -171,7 +147,7 @@
 
     if ([*contentType caseInsensitiveCompare:@"application/x-www-form-urlencoded"] == NSOrderedSame)
     {
-        NSString* queryString = [self queryStringWithParams:content];
+        NSString* queryString = [HKHTTP queryStringWithParams:content];
         
         return [queryString dataUsingEncoding:NSASCIIStringEncoding];
     }
