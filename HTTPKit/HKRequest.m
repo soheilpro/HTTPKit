@@ -45,6 +45,7 @@
 
         HKResponse* response = [[HKResponse alloc] init];
         response.statusCode = rawResponse.statusCode;
+        response.headers = rawResponse.headers;
         response.contentType = [HKRequest contentTypeFromHeader:[rawResponse.headers objectForKey:@"Content-Type"]];
         response.body = rawResponse.body;
         response.data = [HKRequest responseDataFromBody:response.body contentType:response.contentType];

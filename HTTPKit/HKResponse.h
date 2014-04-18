@@ -11,6 +11,7 @@
 @interface HKResponse : NSObject
 
 @property (nonatomic) NSInteger statusCode;
+@property (nonatomic, strong) NSDictionary* headers;
 @property (nonatomic, strong) NSString* contentType;
 @property (nonatomic, strong) NSData* body;
 @property (nonatomic, strong) id data;
