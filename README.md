@@ -12,31 +12,31 @@ Create an instance of HKRequest class, set its properties and call the send meth
 ```objective-c
 HKRequest* request = [[HKRequest alloc] init];
 request.method = @"POST";
-request.baseUrl = @"https://api.example.com";
+request.baseURL = @"https://api.example.com";
 request.path = @"users/%@/posts/%@/comments";
 [request.pathParams addObject:userId];
 [request.pathParams addObject:postId];
 [request.queryParams setObject:accessToken forKey:@"access_token"];
 [request.headers setObject:@"My User-Agent" forKey:@"User-Agent"];
-[request.data setObject:userId forKey:"user_id"];
-[request.data setObject:commentBody forKey:@"comment_body"];
-[request.data setObject:@(YES) forKey:@"share"];
+[request.content setObject:userId forKey:"user_id"];
+[request.content setObject:commentBody forKey:@"comment_body"];
+[request.content setObject:@(YES) forKey:@"share"];
 
 [request send:^(HKResponse* response, NSError* error)
 {
-    if (error != nil)
-    {
-        // Deal with the error
-        return;
-    }
-    
-	if (response.statusCode != 201)
-	{
-		// Something went wrong
-		return;
-	}
-	
-	NSLog(@"Comment Id: %@", [response.data objectForKey:@"comment_id"]);
+  if (error != nil)
+  {
+    // Deal with the error
+    return;
+  }
+
+  if (response.statusCode != 201)
+  {
+    // Something went wrong
+    return;
+  }
+
+  NSLog(@"Comment Id: %@", [response.content objectForKey:@"comment_id"]);
 }];
 
 ```
