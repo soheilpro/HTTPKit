@@ -24,7 +24,7 @@
 @property (nonatomic, strong) NSMutableDictionary* headers;
 @property (nonatomic, strong) NSString* contentType;
 @property (nonatomic, strong) NSData* body;
-@property (nonatomic, strong) id data;
+@property (nonatomic, strong) id content;
 @property (nonatomic) NSURLRequestCachePolicy cachePolicy;
 @property (nonatomic, strong, readonly) HKRawRequest* rawRequest;
 

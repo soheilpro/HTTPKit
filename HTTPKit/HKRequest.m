@@ -23,7 +23,7 @@
         self.queryParams = [NSMutableDictionary dictionary];
         self.headers = [NSMutableDictionary dictionary];
         self.contentType = @"application/x-www-form-urlencoded";
-        self.data = [NSMutableDictionary dictionary];
+        self.content = [NSMutableDictionary dictionary];
     }
 
     return self;
@@ -48,7 +48,7 @@
         response.headers = rawResponse.headers;
         response.contentType = [HKRequest contentTypeFromHeader:[rawResponse.headers objectForKey:@"Content-Type"]];
         response.body = rawResponse.body;
-        response.data = [HKRequest responseDataFromBody:response.body contentType:response.contentType];
+        response.content = [HKRequest responseDataFromBody:response.body contentType:response.contentType];
 
         callback(response, nil);
     }];
@@ -59,7 +59,7 @@
     NSString* url = [HKRequest urlWithProtocol:self.protocol baseURL:self.baseURL subdomain:self.subdomain path:self.path pathParams:self.pathParams queryParams:self.queryParams];
 
     NSString* contentType = self.contentType;
-    NSData* requestContent = self.body ? : [HKRequest requestBodyFromData:self.data contentType:&contentType];
+    NSData* requestContent = self.body ? : [HKRequest requestBodyFromData:self.content contentType:&contentType];
 
     HKRawRequest* httpRequest = [[HKRawRequest alloc] init];
     httpRequest.method = self.method;
