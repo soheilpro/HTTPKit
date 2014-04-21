@@ -9,6 +9,7 @@
 #import "HKFormData.h"
 #import "HKFormDataContentConverter.h"
 #import "HKFormURLEncodedContentConverter.h"
+#import "HKHTMLContentConverter.h"
 #import "HKHTTP.h"
 #import "HKJSONContentConverter.h"
 #import "HKRequest.h"
@@ -36,6 +37,7 @@
         [self.contentConverters addObject:[[HKXMLContentConverter alloc] init]];
         [self.contentConverters addObject:[[HKFormURLEncodedContentConverter alloc] init]];
         [self.contentConverters addObject:[[HKFormDataContentConverter alloc] init]];
+        [self.contentConverters addObject:[[HKHTMLContentConverter alloc] init]];
     }
 
     return self;
