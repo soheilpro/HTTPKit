@@ -12,7 +12,8 @@ Create an instance of HKRequest class, set its properties and call the send meth
 ```objective-c
 HKRequest* request = [[HKRequest alloc] init];
 request.method = @"POST";
-request.baseURL = @"https://api.example.com";
+request.protocol = @"https";
+request.baseURL = @"api.example.com";
 request.path = @"users/%@/posts/%@/comments";
 [request.pathParams addObject:userId];
 [request.pathParams addObject:postId];
